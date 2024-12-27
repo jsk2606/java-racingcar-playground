@@ -1,26 +1,84 @@
-## [NEXTSTEP 플레이그라운드의 미션 진행 과정](https://github.com/next-step/nextstep-docs/blob/master/playground/README.md)
+자바 플레이그라운드 with TDD, 클린 코드
+전승근 전승근
+1️⃣ 문자열 덧셈 계산기
+미션 실습 환경 구축
+자동차 경주 미션 저장소로 이동해 fork/clone 후 미션을 진행한다.
+NEXTSTEP 플레이그라운드의 미션 진행 과정 문서를 참고해 미션을 진행할 실습 환경을 구축한다.
+문자열 덧셈 계산기를 통한 TDD/리팩토링 실습
+기능 요구사항
+쉼표(,) 또는 콜론(:)을 구분자로 가지는 문자열을 전달하는 경우 구분자를 기준으로 분리한 각 숫자의 합을 반환 (예: “” => 0, "1,2" => 3, "1,2,3" => 6, “1,2:3” => 6)
+앞의 기본 구분자(쉼표, 콜론)외에 커스텀 구분자를 지정할 수 있다. 커스텀 구분자는 문자열 앞부분의 “//”와 “\n” 사이에 위치하는 문자를 커스텀 구분자로 사용한다. 예를 들어 “//;\n1;2;3”과 같이 값을 입력할 경우 커스텀 구분자는 세미콜론(;)이며, 결과 값은 6이 반환되어야 한다.
+문자열 계산기에 숫자 이외의 값 또는 음수를 전달하는 경우 RuntimeException 예외를 throw한다.
+프로그래밍 요구사항
+indent(들여쓰기) depth를 2단계에서 1단계로 줄여라.
+depth의 경우 if문을 사용하는 경우 1단계의 depth가 증가한다. if문 안에 while문을 사용한다면 depth가 2단계가 된다.
+메소드의 크기가 최대 10라인을 넘지 않도록 구현한다.
+method가 한 가지 일만 하도록 최대한 작게 만들어라.
+else를 사용하지 마라.
+기능 요구사항 분리 및 힌트
+1. 빈 문자열 또는 null 값을 입력할 경우 0을 반환해야 한다.(예 : “” => 0, null => 0)
+   if (text == null) {}
+   if (text.isEmpty()) {}
+2. 숫자 하나를 문자열로 입력할 경우 해당 숫자를 반환한다.(예 : “1”)
+   int number = Integer.parseInt(text);
+3. 숫자 두개를 컴마(,) 구분자로 입력할 경우 두 숫자의 합을 반환한다.(예 : “1,2”)
+   String[] numbers = text.split(",");
+   // 앞 단계의 구분자가 없는 경우도 split()을 활용해 구현할 수 있는지 검토해 본다.
+4. 구분자를 컴마(,) 이외에 콜론(:)을 사용할 수 있다. (예 : “1,2:3” => 6)
+   String[] tokens= text.split(",|:");
+5. “//”와 “\n” 문자 사이에 커스텀 구분자를 지정할 수 있다. (예 : “//;\n1;2;3” => 6)
+   // java.util.regex 패키지의 Matcher, Pattern import
+   Matcher m = Pattern.compile("//(.)\n(.*)").matcher(text);
+   if (m.find()) {
+   String customDelimiter = m.group(1);
+   String[] tokens= m.group(2).split(customDelimiter);
+   // 덧셈 구현
+   }
+6. 음수를 전달할 경우 RuntimeException 예외가 발생해야 한다. (예 : “-1,2,3”)
+   구글에서 “junit4 expected exception”으로 검색해 해결책을 찾는다.
+   TestCase 소스 코드
+   import org.junit.jupiter.api.Test;
 
----
-## 학습 효과를 높이기 위해 추천하는 미션 진행 방법
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
----
-1. 피드백 강의 전까지 미션 진행 
-> 피드백 강의 전까지 혼자 힘으로 미션 진행. 미션을 진행하면서 하나의 작업이 끝날 때 마다 add, commit
-> 예를 들어 다음 숫자 야구 게임의 경우 0, 1, 2단계까지 구현을 완료한 후 push
+public class StringAddCalculatorTest {
+@Test
+public void splitAndSum_null_또는_빈문자() {
+int result = StringAddCalculator.splitAndSum(null);
+assertThat(result).isEqualTo(0);
 
-![mission baseball](https://raw.githubusercontent.com/next-step/nextstep-docs/master/playground/images/mission_baseball.png)
+        result = StringAddCalculator.splitAndSum("");
+        assertThat(result).isEqualTo(0);
+    }
 
----
-2. 피드백 앞 단계까지 미션 구현을 완료한 후 피드백 강의를 학습한다.
+     @Test
+    public void splitAndSum_숫자하나() throws Exception {
+        int result = StringAddCalculator.splitAndSum("1");
+        assertThat(result).isEqualTo(1);
+    }
 
----
-3. Git 브랜치를 master 또는 main으로 변경한 후 피드백을 반영하기 위한 새로운 브랜치를 생성한 후 처음부터 다시 미션 구현을 도전한다.
+    @Test
+    public void splitAndSum_쉼표구분자() throws Exception {
+        int result = StringAddCalculator.splitAndSum("1,2");
+        assertThat(result).isEqualTo(3);
+    }
 
-```
-git branch -a // 모든 로컬 브랜치 확인
-git checkout master // 기본 브랜치가 master인 경우
-git checkout main // 기본 브랜치가 main인 경우
+    @Test
+    public void splitAndSum_쉼표_또는_콜론_구분자() throws Exception {
+        int result = StringAddCalculator.splitAndSum("1,2:3");
+        assertThat(result).isEqualTo(6);
+    }
 
-git checkout -b 브랜치이름
-ex) git checkout -b apply-feedback
-```
+    @Test
+    public void splitAndSum_custom_구분자() throws Exception {
+        int result = StringAddCalculator.splitAndSum("//;\n1;2;3");
+        assertThat(result).isEqualTo(6);
+    }
+
+    @Test
+    public void splitAndSum_negative() throws Exception {
+        assertThatThrownBy(() -> StringAddCalculator.splitAndSum("-1,2,3"))
+                .isInstanceOf(RuntimeException.class);
+    }
+}

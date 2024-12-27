@@ -1,42 +1,41 @@
 package domain;
 
-import exception.InvalidCarNameException;
-
-import java.util.ArrayList;
-import java.util.List;
+import exception.CarNameExceedsCharacterLimitException;
 
 public class Car {
 
-    private String carName;
-    private int advance = 0;
-    private final int ADVANCE_CUT = 3;
-    private final int NAME_MAX_SIZE = 5;
+    private final static int NAME_MAX_SIZE = 5;
+    private final String carName;
+    private final String STATUS_FORMAT = "%s : %s";
+    private short position = 0;
 
     public Car(String carName) {
-        nameCheck(carName);
-    }
-
-    private void nameCheck(String carName) {
-        if(null == carName){
-            // 흐음
-        }
-        if(carName.length() > NAME_MAX_SIZE){
-            throw new InvalidCarNameException();
-        }
         this.carName = carName;
     }
 
-    public void accel(int rpm) {
-        if(rpm > ADVANCE_CUT){
-            this.advance++;
+    public static void nameCheck(String carName) {
+        if (carName.length() > NAME_MAX_SIZE) {
+            throw new CarNameExceedsCharacterLimitException();
         }
     }
 
-    public int getAdvance() {
-        return this.advance;
+    public void accel() {
+        this.position++;
+    }
+
+    public int getPosition() {
+        return this.position;
     }
 
     public String getCarName() {
         return this.carName;
+    }
+
+    public String statusToString() {
+        StringBuilder positionBar = new StringBuilder();
+        for (int i = 0; i < position; i++) {
+            positionBar.append("-");
+        }
+        return String.format(STATUS_FORMAT, carName, positionBar.toString());
     }
 }
